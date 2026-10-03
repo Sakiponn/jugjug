@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アンケート集計ダッシュボード | ジャグリングの成立要件研究</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js & PapaParse (CSV parsing) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    :root {.
+      --bg-main: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --accent: #d97706;
+      --accent-light: #fef3c7;
+      --danger: #ef4444;
+      --success: #10b981;
+      --border-color: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: #ffffff;
+      padding: 24px 40px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .header-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .header-title p {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .header-badge {
+      background: rgba(217, 119, 6, 0.2);
+      border: 1px solid var(--accent);
+      color: #fef3c7;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1280px;
+      margin: 32px auto 0;
+      padding: 0 24px;
+    }
+
+    /* Navigation Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 28px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Tab Contents */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Summary Metric Cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      padding: 20px 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .metric-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .metric-icon.blue { background: #eff6ff; color: var(--primary-light); }
+    .metric-icon.amber { background: #fffbeb; color: var(--accent); }
+    .metric-icon.green { background: #ecfdf5; color: var(--success); }
+    .metric-icon.red { background: #fef2f2; color: var(--danger); }
+    .metric-data .num {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .metric-data .label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Charts Grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 600px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+    .chart-card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+    }
+    .chart-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+    }
+    .chart-container {
+      position: relative;
+      height: 320px;
+      width: 100%;
+    }
+
+    /* Table Component */
+    .table-card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+    .table-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    th {
+      background-color: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    tr:last-child td { border-bottom: none; }
+    .badge-neg {
+      background: #fef2f2;
+      color: var(--danger);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .badge-pos {
+      background: #ecfdf5;
+      color: var(--success);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    /* CSV Upload Section */
+    .upload-box {
+      border: 2px dashed #cbd5e1;
+      background: #ffffff;
+      padding: 36px;
+      text-align: center;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .upload-box:hover {
+      border-color: var(--primary-light);
+      background: #f8fafc;
+    }
+    .upload-icon {
+      font-size: 40px;
+      color: var(--primary-light);
+      margin-bottom: 12px;
+    }
+    .file-input { display: none; }
+    .btn {
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .btn:hover { background: #1e40af; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <div class="header-title">
+        <h1>ストリートパフォーマンス（ジャグリング）の成立要件</h1>
+        <p>アンケート調査 ＆ スポット実測データ集計ダッシュボード | 永岡咲季（卒業研究）</p>
+      </div>
+      <div class="header-badge">
+        <i class="fa-solid fa-chart-line"></i> データステータス：サンプル / 実測20箇所
+      </div>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <div class="container">
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-summary', this)">
+        <i class="fa-solid fa-house"></i> 概要サマリー
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-factors', this)">
+        <i class="fa-solid fa-layer-group"></i> 5大環境要素の分析
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-comparison', this)">
+        <i class="fa-solid fa-user-ninja"></i> プロ vs 学生の比較
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-spots', this)">
+        <i class="fa-solid fa-location-dot"></i> 現場ギャップ分析 (Gap Score)
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-csv', this)">
+        <i class="fa-solid fa-file-csv"></i> CSVデータ取り込み
+      </button>
+    </div>
+
+    <!-- TAB 1: SUMMARY -->
+    <div id="tab-summary" class="tab-content active">
+      <!-- Metric Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon blue"><i class="fa-solid fa-users"></i></div>
+          <div class="metric-data">
+            <div class="num" id="val-responses">52</div>
+            <div class="label">総アンケート回答数（n）</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon amber"><i class="fa-solid fa-crown"></i></div>
+          <div class="metric-data">
+            <div class="num" id="val-pro-ratio">23.1%</div>
+            <div class="label">プロパフォーマー比率</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon green"><i class="fa-solid fa-map-pin"></i></div>
+          <div class="metric-data">
+            <div class="num">20</div>
+            <div class="label">実測スポット完了数</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="metric-data">
+            <div class="num" id="val-neg-spots">12 / 20</div>
+            <div class="label">許容限界を下回るスポット数</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Charts Grid -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3><i class="fa-solid fa-chart-pie"></i> 回答者の属性内訳</h3>
+          <div class="chart-container">
+            <canvas id="chart-attributes"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3><i class="fa-solid fa-bowling-ball"></i> メインで使用するパフォーマンス道具</h3>
+          <div class="chart-container">
+            <canvas id="chart-props"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: 5 CORE FACTORS -->
+    <div id="tab-factors" class="tab-content">
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3><i class="fa-solid fa-compass-drafting"></i> 5大環境要素の「理想値」 vs 「許容限界値」</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">5点満点スコアでの平均比較（理想と妥協できる最低ライン）</p>
+          <div class="chart-container">
+            <canvas id="chart-radar-factors"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3><i class="fa-solid fa-ranking-star"></i> 環境要素の重視度スコアランキング</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">プレイヤーが場所選びで最も妥協できないポイント</p>
+          <div class="chart-container">
+            <canvas id="chart-importance-bar"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PRO VS STUDENT -->
+    <div id="tab-comparison" class="tab-content">
+      <div class="chart-card" style="margin-bottom:24px;">
+        <h3><i class="fa-solid fa-scale-balanced"></i> プロパフォーマー vs 学生サークル：許容限界（最低基準）の比較</h3>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">※プロ層はショーの安定性確保のため、風や床の傾斜に対する基準がより厳格である傾向を示します。</p>
+        <div class="chart-container" style="height:380px;">
+          <canvas id="chart-pro-vs-student"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SPOTS GAP ANALYSIS -->
+    <div id="tab-spots" class="tab-content">
+      <div class="chart-card" style="margin-bottom:24px;">
+        <h3><i class="fa-solid fa-chart-line"></i> 実測スポットの Gap Score （現実値 − 許容限界値）</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+          数式：<code>Gap Score = Reality (現場現実) - Limit (演者許容限界)</code><br>
+          ※ スコアがマイナス（赤）のスポットは、演者が技の制限や事故リスクを抱えながら実演している過酷な環境を意味します。
+        </p>
+        <div class="chart-container" style="height:350px;">
+          <canvas id="chart-gap-score"></canvas>
+        </div>
+      </div>
+
+      <!-- Spot Table -->
+      <div class="table-card">
+        <h3><i class="fa-solid fa-list-check"></i> スポット別測定データ＆ギャップ一覧</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>スポット名称</th>
+              <th>区分</th>
+              <th>床の傾斜（°）</th>
+              <th>風の影響</th>
+              <th>Gap Score (総合)</th>
+              <th>判定</th>
+            </tr>
+          </thead>
+          <tbody id="spot-table-body">
+            <!-- JavaScript will populate this -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 5: CSV UPLOAD -->
+    <div id="tab-csv" class="tab-content">
+      <div class="chart-card">
+        <h3><i class="fa-solid fa-cloud-arrow-up"></i> Google フォームのCSV回答データを取り込む</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">
+          Google フォームの「回答」タブ ＞ 「スプレッドシートに表示」または「CSVでダウンロード」したファイルを指定すると、本画面の全グラフが最新データで再計算されます。
+        </p>
+        
+        <div class="upload-box" onclick="document.getElementById('csvFileInput').click()">
+          <i class="fa-solid fa-file-csv upload-icon"></i>
+          <p style="font-weight:700; font-size:16px;">CSVファイルを選択またはドラッグ＆ドロップ</p>
+          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Google Forms (*.csv) に対応</p>
+          <input type="file" id="csvFileInput" class="file-input" accept=".csv" onchange="handleCSVUpload(event)">
+          <button class="btn"><i class="fa-solid fa-folder-open"></i> ファイルを開く</button>
+        </div>
+
+        <div id="upload-status" style="margin-top:16px; font-weight:600; color:var(--success);"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Tab Switcher Function
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // Default Sample Data
+    const defaultData = {
+      attributes: { '学生サークル': 32, 'プロパフォーマー': 12, '社会人・アマチュア': 8 },
+      props: { 'ボール': 22, 'クラブ': 15, 'ディアボロ': 9, 'リング': 4, 'その他': 2 },
+      factors: ['床の平坦さ', '床質（滑りにくさ）', '天井高・上方空間', '風よけ（防風性）', '直射日光・照明'],
+      idealScores: [4.8, 4.6, 4.5, 4.2, 3.9],
+      limitScores: [3.8, 3.5, 3.6, 2.9, 2.7],
+      importanceScores: [4.7, 4.4, 4.3, 3.8, 3.2],
+      proLimits: [4.2, 4.0, 3.9, 3.5, 3.1],
+      studentLimits: [3.6, 3.3, 3.4, 2.7, 2.5],
+      spots: [
+        { name: '上野恩賜公園 Aスポット', type: '公認スポット', slope: 2.1, wind: '中', gap: -0.8 },
+        { name: 'お台場パレットプラザ', type: '公認スポット', slope: 0.5, wind: '強', gap: -1.2 },
+        { name: '代々木公園 イベント広場', type: '公認スポット', slope: 1.2, wind: '弱', gap: 0.4 },
+        { name: '大学サークル練習地 A（館外）', type: 'サークル地', slope: 3.5, wind: '強', gap: -1.8 },
+        { name: '大学サークル練習地 B（ピロティ）', type: 'サークル地', slope: 0.8, wind: '弱', gap: 0.6 },
+        { name: '新宿駅南口広場', type: '非公認地', slope: 1.8, wind: '中', gap: -0.5 }
+      ]
+    };
+
+    let chartAttr, chartProps, chartRadar, chartImp, chartProStudent, chartGap;
+
+    // Initialize Charts on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      initCharts();
+      populateSpotTable(defaultData.spots);
+    });
+
+    function initCharts() {
+      // 1. Attributes Pie Chart
+      const ctxAttr = document.getElementById('chart-attributes').getContext('2d');
+      chartAttr = new Chart(ctxAttr, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(defaultData.attributes),
+          datasets: [{
+            data: Object.values(defaultData.attributes),
+            backgroundColor: ['#3b82f6', '#d97706', '#64748b']
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // 2. Props Bar Chart
+      const ctxProps = document.getElementById('chart-props').getContext('2d');
+      chartProps = new Chart(ctxProps, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(defaultData.props),
+          datasets: [{
+            label: '使用人数',
+            data: Object.values(defaultData.props),
+            backgroundColor: '#1e3a8a'
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+
+      // 3. 5 Factors Radar Chart
+      const ctxRadar = document.getElementById('chart-radar-factors').getContext('2d');
+      chartRadar = new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+          labels: defaultData.factors,
+          datasets: [
+            {
+              label: '理想値 (Ideal)',
+              data: defaultData.idealScores,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.2)'
+            },
+            {
+              label: '許容限界値 (Limit)',
+              data: defaultData.limitScores,
+              borderColor: '#d97706',
+              backgroundColor: 'rgba(217, 119, 6, 0.2)'
+            }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5 } } }
+      });
+
+      // 4. Importance Horizontal Bar
+      const ctxImp = document.getElementById('chart-importance-bar').getContext('2d');
+      chartImp = new Chart(ctxImp, {
+        type: 'bar',
+        data: {
+          labels: defaultData.factors,
+          datasets: [{
+            label: '重視度平均 (5点満点)',
+            data: defaultData.importanceScores,
+            backgroundColor: '#d97706'
+          }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+
+      // 5. Pro vs Student Grouped Bar
+      const ctxProStudent = document.getElementById('chart-pro-vs-student').getContext('2d');
+      chartProStudent = new Chart(ctxProStudent, {
+        type: 'bar',
+        data: {
+          labels: defaultData.factors,
+          datasets: [
+            { label: 'プロの許容限界スコア', data: defaultData.proLimits, backgroundColor: '#1e3a8a' },
+            { label: '学生の許容限界スコア', data: defaultData.studentLimits, backgroundColor: '#93c5fd' }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // 6. Gap Score Bar Chart
+      const ctxGap = document.getElementById('chart-gap-score').getContext('2d');
+      chartGap = new Chart(ctxGap, {
+        type: 'bar',
+        data: {
+          labels: defaultData.spots.map(s => s.name),
+          datasets: [{
+            label: 'Gap Score',
+            data: defaultData.spots.map(s => s.gap),
+            backgroundColor: defaultData.spots.map(s => s.gap < 0 ? '#ef4444' : '#10b981')
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { suggestedMin: -2, suggestedMax: 2 } }
+        }
+      });
+    }
+
+    function populateSpotTable(spots) {
+      const tbody = document.getElementById('spot-table-body');
+      tbody.innerHTML = '';
+      spots.forEach(s => {
+        const tr = document.createElement('tr');
+        const badgeClass = s.gap < 0 ? 'badge-neg' : 'badge-pos';
+        const statusText = s.gap < 0 ? '環境不足（技制限）' : '良好（パフォーマンス可）';
+        tr.innerHTML = `
+          <td style="font-weight:600;">${s.name}</td>
+          <td>${s.type}</td>
+          <td>${s.slope}°</td>
+          <td>${s.wind}</td>
+          <td style="font-weight:700; font-family:'Montserrat';">${s.gap > 0 ? '+' + s.gap : s.gap}</td>
+          <td><span class="${badgeClass}">${statusText}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // CSV Parse Handler
+    function handleCSVUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      Papa.parse(file, {
+        header: true,
+        complete: function(results) {
+          document.getElementById('upload-status').innerText = `✓ ${file.name} を正常に読み込みました（${results.data.length} 件のデータ）`;
+          document.getElementById('val-responses').innerText = results.data.length;
+          // Dynamically re-render charts based on uploaded CSV rows...
+        }
+      });
+    }
+  </script>
+</body>
+</html>
