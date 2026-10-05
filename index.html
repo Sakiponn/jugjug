@@ -10,6 +10,8 @@
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #e67e22;
+            --ideal-color: #27ae60;
+            --allow-color: #f39c12;
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --text-color: #333333;
@@ -92,6 +94,22 @@
             padding-bottom: 0.5rem;
         }
 
+        .dual-legend {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+            font-weight: bold;
+        }
+
+        .legend-ideal {
+            color: var(--ideal-color);
+        }
+
+        .legend-allow {
+            color: var(--allow-color);
+        }
+
         .chart-container {
             position: relative;
             height: 250px;
@@ -151,9 +169,9 @@
 <body>
 
     <header>
-        <h1>ジャグリングの練習場所に関する質問紙調査</h1>
+        <h1>ジャグリングの練習・パフォーマンス環境についての 質問紙調査</h1>
         <p>「ストリートパフォーマンス（ジャグリング）の成立要件に関する研究」</p>
-        <p>調査実施者：東京都立大学 観光科学科 4年 永岡咲季（ジャグリングサークル Team “Lamp”OG）</p>
+        <p>調査実施者：東京都立大学 観光科学科 4年 永岡咲季（ジャグリングサークル Team “Lamp” OG）</p>
         <div class="status-badge">⏳ 現在集計中（アンケート回答受付中）</div>
     </header>
 
@@ -200,51 +218,75 @@
             </ul>
         </div>
 
-        <!-- 3. 空間条件への回答 -->
-        <h2 class="section-title">3. 空間環境の条件・選択結果</h2>
+        <!-- 3. 空間環境の条件（理想 vs 許容限界） -->
+        <h2 class="section-title">3. 空間環境の条件（理想 vs 許容限界）</h2>
         <div class="grid">
             <div class="card">
                 <h3>1. 床質（理想 / 許容できる床材）</h3>
+                <div class="dual-legend">
+                    <span class="legend-ideal">🌟 理想の条件</span>
+                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                </div>
                 <div class="chart-container">
                     <div class="in-progress-overlay">
                         <span>🧱</span>
-                        <p><strong>現在データ集計中</strong></p>
+                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
                     </div>
                 </div>
             </div>
+
             <div class="card">
                 <h3>2. 床の平坦さ・傾斜</h3>
+                <div class="dual-legend">
+                    <span class="legend-ideal">🌟 理想の条件</span>
+                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                </div>
                 <div class="chart-container">
                     <div class="in-progress-overlay">
                         <span>📐</span>
-                        <p><strong>現在データ集計中</strong></p>
+                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
                     </div>
                 </div>
             </div>
+
             <div class="card">
                 <h3>3. 天井の高さ</h3>
+                <div class="dual-legend">
+                    <span class="legend-ideal">🌟 理想の条件</span>
+                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                </div>
                 <div class="chart-container">
                     <div class="in-progress-overlay">
                         <span>📏</span>
-                        <p><strong>現在データ集計中</strong></p>
+                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
                     </div>
                 </div>
             </div>
+
             <div class="card">
                 <h3>4. 直射日光・明るさ</h3>
+                <div class="dual-legend">
+                    <span class="legend-ideal">🌟 理想の条件</span>
+                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                </div>
                 <div class="chart-container">
                     <div class="in-progress-overlay">
-                        <span>☀️️</span>
-                        <p><strong>現在データ集計中</strong></p>
+                        <span>☀️</span>
+                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
                     </div>
                 </div>
             </div>
+
             <div class="card">
                 <h3>5. 風よけ・風速</h3>
+                <div class="dual-legend">
+                    <span class="legend-ideal">🌟 理想の条件</span>
+                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                </div>
                 <div class="chart-container">
                     <div class="in-progress-overlay">
                         <span>🍃</span>
-                        <p><strong>現在データ集計中</strong></p>
+                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
                     </div>
                 </div>
             </div>
@@ -257,7 +299,7 @@
             <div class="chart-container">
                 <div class="in-progress-overlay">
                     <span>📈</span>
-                    <p><strong>現在データ集計中</strong><br>各要素の重視度の比較を表示します。</p>
+                    <p><strong>現在データ集計中</strong><br>5要素それぞれの平均重視度を表示します。</p>
                 </div>
             </div>
         </div>
@@ -265,7 +307,7 @@
     </div>
 
     <footer>
-        <p>本調査に関するお問い合わせ：<a href="https://x.com" target="_blank">mail:sakinagaoka8@gmail.com</a></p>
+        <p>本調査に関するお問い合わせ：<a href="https://x.com" target="_blank">sakinagaoka8@gmail.com</a></p>
         <p>&copy; 2026 Saki Nagaoka - Graduation Research Website</p>
     </footer>
 
