@@ -12,6 +12,7 @@
             --secondary-color: #e67e22;
             --ideal-color: #27ae60;
             --allow-color: #f39c12;
+            --ng-color: #e74c3c;
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --text-color: #333333;
@@ -110,29 +111,14 @@
             color: var(--allow-color);
         }
 
+        .legend-ng {
+            color: var(--ng-color);
+        }
+
         .chart-container {
             position: relative;
             height: 250px;
             width: 100%;
-        }
-
-        .in-progress-overlay {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            background-color: rgba(248, 249, 250, 0.85);
-            border: 2px dashed #ccc;
-            border-radius: 6px;
-            color: #666;
-            text-align: center;
-            padding: 1rem;
-        }
-
-        .in-progress-overlay span {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
         }
 
         .location-list {
@@ -142,13 +128,12 @@
         }
 
         .location-list li {
-            padding: 0.6rem;
+            padding: 0.6rem 0.9rem;
             background: #f1f3f5;
             margin-bottom: 0.5rem;
             border-radius: 4px;
             font-size: 0.9rem;
-            color: #666;
-            text-align: center;
+            color: #444;
         }
 
         footer {
@@ -172,7 +157,7 @@
         <h1>ジャグリングの練習・パフォーマンス環境についての 質問紙調査</h1>
         <p>「ストリートパフォーマンス（ジャグリング）の成立要件に関する研究」</p>
         <p>調査実施者：東京都立大学 観光科学科 4年 永岡咲季（ジャグリングサークル Team “Lamp” OG）</p>
-        <div class="status-badge">⏳ 現在集計中（アンケート回答受付中）</div>
+        <div class="status-badge" id="statusBadge">✅ 集計反映中（回答数：35件）</div>
     </header>
 
     <div class="container">
@@ -182,29 +167,20 @@
         <div class="grid">
             <div class="card">
                 <h3>主な活動属性</h3>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>📊</span>
-                        <p><strong>現在データ集計中</strong><br>十分な回答が集まり次第、グラフが表示されます。</p>
-                    </div>
+                <div class="chart-container" id="box-activity">
+                    <canvas id="chart-activity"></canvas>
                 </div>
             </div>
             <div class="card">
                 <h3>主な使用道具（複数回答）</h3>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>📊</span>
-                        <p><strong>現在データ集計中</strong><br>十分な回答が集まり次第、グラフが表示されます。</p>
-                    </div>
+                <div class="chart-container" id="box-props">
+                    <canvas id="chart-props"></canvas>
                 </div>
             </div>
             <div class="card">
                 <h3>ジャグリング歴</h3>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>📊</span>
-                        <p><strong>現在データ集計中</strong><br>十分な回答が集まり次第、グラフが表示されます。</p>
-                    </div>
+                <div class="chart-container" id="box-experience">
+                    <canvas id="chart-experience"></canvas>
                 </div>
             </div>
         </div>
@@ -212,96 +188,76 @@
         <!-- 2. 練習場所について -->
         <h2 class="section-title">2. お気に入りの練習場所</h2>
         <div class="card">
-            <h3>普段利用している・お気に入りの練習スポット</h3>
-            <ul class="location-list">
-                <li>⏳ 現在回答受付中です。回答が集まった後、主な練習場所傾向を掲載します。</li>
-            </ul>
+            <h3>普段利用している・お気に入りの練習スポット（上位10件）</h3>
+            <ul class="location-list" id="locationList"></ul>
         </div>
 
-        <!-- 3. 空間環境の条件（理想 vs 許容限界） -->
-        <h2 class="section-title">3. 空間環境の条件（理想 vs 許容限界）</h2>
+        <!-- 3. 空間環境の条件 -->
+        <h2 class="section-title">3. 空間環境の条件</h2>
         <div class="grid">
             <div class="card">
                 <h3>1. 床質</h3>
                 <div class="dual-legend">
                     <span class="legend-ideal">🌟 理想の条件</span>
-                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                    <span class="legend-ng">🚫 許容できない（NG）条件</span>
                 </div>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>🧱</span>
-                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
-                    </div>
+                <div class="chart-container" id="box-floor">
+                    <canvas id="chart-floor"></canvas>
                 </div>
             </div>
 
             <div class="card">
-                <h3>2. 床面積</h3>
+                <h3>2. 床面積スコア平均（1:1〜2畳 〜 5:15畳以上）</h3>
                 <div class="dual-legend">
-                    <span class="legend-ideal">🌟 理想の条件</span>
-                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                    <span class="legend-ideal">🌟 理想の平均</span>
+                    <span class="legend-allow">⚠️ 許容の平均</span>
                 </div>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>⏹️</span>
-                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
-                    </div>
+                <div class="chart-container" id="box-area">
+                    <canvas id="chart-area"></canvas>
                 </div>
             </div>
 
             <div class="card">
-                <h3>3. 床の平坦さ・傾斜</h3>
+                <h3>3. 床の平坦さスコア平均（1〜4）</h3>
                 <div class="dual-legend">
-                    <span class="legend-ideal">🌟 理想の条件</span>
-                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                    <span class="legend-ideal">🌟 理想の平均</span>
+                    <span class="legend-allow">⚠️ 許容の平均</span>
                 </div>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>📐</span>
-                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
-                    </div>
+                <div class="chart-container" id="box-flatness">
+                    <canvas id="chart-flatness"></canvas>
                 </div>
             </div>
 
             <div class="card">
-                <h3>4. 天井の高さ</h3>
+                <h3>4. 天井の高さスコア平均（1〜4）</h3>
                 <div class="dual-legend">
-                    <span class="legend-ideal">🌟 理想の条件</span>
-                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                    <span class="legend-ideal">🌟 理想の平均</span>
+                    <span class="legend-allow">⚠️ 許容の平均</span>
                 </div>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>📏</span>
-                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
-                    </div>
+                <div class="chart-container" id="box-height">
+                    <canvas id="chart-height"></canvas>
                 </div>
             </div>
 
             <div class="card">
-                <h3>5. 直射日光・明るさ</h3>
+                <h3>5. 眩しくなさ・眩しさスコア平均（1〜3）</h3>
                 <div class="dual-legend">
-                    <span class="legend-ideal">🌟 理想の条件</span>
-                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                    <span class="legend-ideal">🌟 理想の平均</span>
+                    <span class="legend-allow">⚠️ 許容の平均</span>
                 </div>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>☀️</span>
-                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
-                    </div>
+                <div class="chart-container" id="box-glare">
+                    <canvas id="chart-glare"></canvas>
                 </div>
             </div>
 
             <div class="card">
-                <h3>6. 風よけ・風速</h3>
+                <h3>6. 風条件スコア平均（1〜4）</h3>
                 <div class="dual-legend">
-                    <span class="legend-ideal">🌟 理想の条件</span>
-                    <span class="legend-allow">⚠️ 許容できる条件</span>
+                    <span class="legend-ideal">🌟 理想の平均</span>
+                    <span class="legend-allow">⚠️ 許容の平均</span>
                 </div>
-                <div class="chart-container">
-                    <div class="in-progress-overlay">
-                        <span>🍃</span>
-                        <p><strong>現在データ集計中</strong><br>理想値と許容限界の比較グラフを表示予定です。</p>
-                    </div>
+                <div class="chart-container" id="box-wind">
+                    <canvas id="chart-wind"></canvas>
                 </div>
             </div>
         </div>
@@ -309,21 +265,181 @@
         <!-- 4. 重要度評価 -->
         <h2 class="section-title">4. 各要素の重要度評価</h2>
         <div class="card">
-            <h3>6大要素の重要度（平均評価）</h3>
-            <div class="chart-container">
-                <div class="in-progress-overlay">
-                    <span>📈</span>
-                    <p><strong>現在データ集計中</strong><br>6要素それぞれの平均重視度を表示します。</p>
-                </div>
+            <h3>6大要素の重要度（平均評価・5点満点）</h3>
+            <div class="chart-container" id="box-importance">
+                <canvas id="chart-importance"></canvas>
             </div>
         </div>
 
     </div>
 
     <footer>
-        <p>本調査に関するお問い合わせ：<a href="https://x.com" target="_blank">sakinagaoka8@gmail.com</a></p>
+        <p>本調査に関するお問い合わせ：<a href="mailto:sakinagaoka8@gmail.com">sakinagaoka8@gmail.com</a></p>
         <p>&copy; 2026 Saki Nagaoka - Graduation Research Website</p>
     </footer>
 
+    <script>
+        const SURVEY_DATA = {
+            totalCount: 35,
+            activity: {
+                "学生ジャグラー": 33,
+                "社会人ジャグラー": 2
+            },
+            props: {
+                "ボール": 9,
+                "フラワー・デビルスティック": 6,
+                "ディアボロ": 5,
+                "リング": 4,
+                "シガーボックス": 4,
+                "シェーカーカップ": 3,
+                "クラブ": 3,
+                "ポイ": 2,
+                "シェーカー": 1,
+                "コンタクト": 1,
+                "フライングハット": 1,
+                "ヨーヨー": 1,
+                "カラーコーン": 1,
+                "コンタクトボール": 1,
+                "なんで皿が無いんですか": 1
+            },
+            experience: {
+                "1～３年": 23,
+                "４年以上": 12
+            },
+            topLocations: [
+                ["大学の体育館", 4],
+                ["大学のスタジオ", 4],
+                ["スタジオ", 3],
+                ["大ホール", 2],
+                ["講堂", 2],
+                ["7号館前", 2],
+                ["体育館", 2],
+                ["スタジオ101", 1],
+                ["図書下", 1],
+                ["大学内の芝生", 1]
+            ],
+            floorIdeal: {
+                "体育館フロア・フローリング": 30,
+                "クッションマット・ゴム系": 3,
+                "タイル・コンクリート": 1,
+                "舞台ステージ床面": 1
+            },
+            floorNg: {
+                "アスファルト": 12,
+                "土・グラウンド": 12,
+                "芝生・人工芝": 9,
+                "タイル・コンクリート": 7,
+                "クッションマット・ゴム系": 7,
+                "特にない": 6,
+                "畳": 1,
+                "砂、砂利": 1
+            },
+            area: { idealAvg: 3.57, allowAvg: 2.14 },
+            flatness: { idealAvg: 4.0, allowAvg: 2.97 },
+            height: { idealAvg: 2.74, allowAvg: 2.12 },
+            glare: { idealAvg: 2.74, allowAvg: 1.83 },
+            wind: { idealAvg: 3.91, allowAvg: 2.87 },
+            importance: {
+                labels: ["床質", "床面積", "床の平坦さ", "天井高", "眩しさ", "風よけの有無"],
+                means: [3.74, 3.69, 3.74, 3.77, 3.71, 3.54]
+            }
+        };
+
+        function renderBarChart(canvasId, label, countsObj, color = "#2c3e50") {
+            const entries = Object.entries(countsObj).sort((a, b) => b[1] - a[1]);
+            const ctx = document.getElementById(canvasId);
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: entries.map(e => e[0]),
+                    datasets: [{ label, data: entries.map(e => e[1]), backgroundColor: color }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+        }
+
+        function renderIdealVsNgCategory(canvasId, idealObj, ngObj) {
+            const labels = Array.from(new Set([...Object.keys(idealObj), ...Object.keys(ngObj)]));
+            const ctx = document.getElementById(canvasId);
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [
+                        { label: "理想の条件", data: labels.map(l => idealObj[l] || 0), backgroundColor: "#27ae60" },
+                        { label: "許容できない（NG）条件", data: labels.map(l => ngObj[l] || 0), backgroundColor: "#e74c3c" }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+        }
+
+        function renderIdealVsAllowMean(canvasId, unitLabel, idealAvg, allowAvg, maxScale) {
+            const ctx = document.getElementById(canvasId);
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: [unitLabel],
+                    datasets: [
+                        { label: "理想の平均", data: [idealAvg], backgroundColor: "#27ae60" },
+                        { label: "許容の平均", data: [allowAvg], backgroundColor: "#f39c12" }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: maxScale } }
+                }
+            });
+        }
+
+        function initDashboard() {
+            document.getElementById("statusBadge").textContent = `✅ 集計反映中（回答数：${SURVEY_DATA.totalCount}件）`;
+
+            renderBarChart("chart-activity", "回答数", SURVEY_DATA.activity, "#2c3e50");
+            renderBarChart("chart-props", "回答数", SURVEY_DATA.props, "#e67e22");
+            renderBarChart("chart-experience", "回答数", SURVEY_DATA.experience, "#3498db");
+
+            const ul = document.getElementById("locationList");
+            ul.innerHTML = SURVEY_DATA.topLocations
+                .map(([place, cnt]) => `<li><strong>${place}</strong>（${cnt}件）</li>`)
+                .join("");
+
+            renderIdealVsNgCategory("chart-floor", SURVEY_DATA.floorIdeal, SURVEY_DATA.floorNg);
+            renderIdealVsAllowMean("chart-area", "床面積スコア平均", SURVEY_DATA.area.idealAvg, SURVEY_DATA.area.allowAvg, 5);
+            renderIdealVsAllowMean("chart-flatness", "平坦さスコア平均", SURVEY_DATA.flatness.idealAvg, SURVEY_DATA.flatness.allowAvg, 4);
+            renderIdealVsAllowMean("chart-height", "天井高スコア平均", SURVEY_DATA.height.idealAvg, SURVEY_DATA.height.allowAvg, 4);
+            renderIdealVsAllowMean("chart-glare", "眩しさスコア平均", SURVEY_DATA.glare.idealAvg, SURVEY_DATA.glare.allowAvg, 3);
+            renderIdealVsAllowMean("chart-wind", "風条件スコア平均", SURVEY_DATA.wind.idealAvg, SURVEY_DATA.wind.allowAvg, 4);
+
+            new Chart(document.getElementById("chart-importance"), {
+                type: "bar",
+                data: {
+                    labels: SURVEY_DATA.importance.labels,
+                    datasets: [{
+                        label: "重要度平均",
+                        data: SURVEY_DATA.importance.means,
+                        backgroundColor: "#e67e22"
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 5 } }
+                }
+            });
+        }
+
+        initDashboard();
+    </script>
 </body>
 </html>
